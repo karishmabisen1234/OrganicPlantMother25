@@ -460,6 +460,9 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
   link.download = `Organic_Solutions_${lang}.txt`;
   link.click();
 });
+document.querySelector(".back-btn").addEventListener("click", function() {
+    window.location.href = "dashboard.html"; // Change this to your dashboard page URL
+});
 
 // Initial render
 renderCards();

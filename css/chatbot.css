@@ -1,87 +1,111 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #f0f4f7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  font-family: Poppins, Arial;
+  background: #eef5ee;
+  margin: 0;
 }
 
-.chat-container {
-  width: 400px;
-  max-width: 95%;
+.chatbox {
+  max-width: 450px;
+  margin: 20px auto;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  border-radius: 14px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
-.chat-header {
-  background: linear-gradient(135deg,#4CAF50,#2E7D32);
+header {
+  background: #2e7d32;
   color: #fff;
-  font-weight: bold;
-  padding: 18px;
+  padding: 12px;
+  border-radius: 14px 14px 0 0;
   text-align: center;
-  font-size: 18px;
 }
 
-.chat-box {
+#messages {
   flex: 1;
   padding: 12px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #f9f9f9;
 }
 
-.bubble {
-  max-width: 80%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  line-height: 1.4;
-  word-wrap: break-word;
+.msg {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  max-width: 90%;
+  white-space: pre-line;
 }
 
-.bubble.bot {
-  background: #e0f7e9;
-  align-self: flex-start;
+.bot {
+  background: #e8f5e9;
+  color: #1b5e20;
 }
 
-.bubble.user {
-  background: #4CAF50;
-  color: #fff;
-  align-self: flex-end;
+.user {
+  background: #e3f2fd;
+  color: #0d47a1;
+  margin-left: auto;
 }
 
-.input-row {
-  display: flex;
-  padding: 10px;
-  border-top: 1px solid #ddd;
-  gap: 6px;
-}
-
-#userInput {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-}
-
-#sendBtn {
-  padding: 10px 14px;
+.options button {
+  margin: 4px 4px 0 0;
+  padding: 6px 10px;
   border: none;
   border-radius: 8px;
-  background: #4CAF50;
-  color: white;
-  font-weight: bold;
+  background: #2e7d32;
+  color: #fff;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-#sendBtn:hover {
-  background: #388E3C;
+footer {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  align-items: center;
+}
+
+input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.mic {
+  background: #1b5e20;
+  color: #fff;
+}
+
+.stop {
+  background: #c62828;
+  color: #fff;
+}
+
+.send {
+  background: #2e7d32;
+  color: #fff;
+}
+/* Back to Dashboard Button Style */
+#backBtn {
+    background-color: #4CAF50; /* green color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 12px;
+    margin-left: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#backBtn:hover {
+    background-color: #45a049; /* darken on hover */
 }
