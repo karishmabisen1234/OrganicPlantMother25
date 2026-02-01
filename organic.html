@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plant Health Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/organic.css">
+</head>
+<body>
+
+<header>🌿 Plant Health Dashboard</header>
+
+<div class="controls">
+  <button class="back-btn">⬅ Back to Dashboard</button>
+  <button class="download-btn" id="downloadBtn">⬇ Download</button>
+  <br>
+  <select id="languageSwitcher">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="mr">Marathi</option>
+    <option value="bn">Bengali</option>
+    <option value="ta">Tamil</option>
+    <option value="te">Telugu</option>
+    <option value="gu">Gujarati</option>
+    <option value="pa">Punjabi</option>
+    <option value="kn">Kannada</option>
+    <option value="ml">Malayalam</option>
+    <option value="or">Odia</option>
+    <option value="ur">Urdu</option>
+  </select>
+  <input type="text" id="searchInput" placeholder="Search plants...">
+</div>
+
+<div id="container"></div>
+<script src="js/organic.js"></script>
+
+</body>
+</html>

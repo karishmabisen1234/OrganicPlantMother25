@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌿 Smart Plant Disease Detector | Login</title>
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+   
+  <!-- Floating leaves -->
+  <div class="leaf"></div>
+  <div class="leaf"></div>
+  <div class="leaf"></div>
+  <div class="leaf"></div>
+  <div class="leaf"></div>
+
+  <div class="login-container">
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm" class="form active">
+      <h1 id="title">🌿 Smart Plant Detector</h1>
+      <p id="subtitle">AI-powered plant disease detection for smarter farming</p>
+
+      <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="mr">Marathi</option>
+          <option value="bn">Bengali</option>
+          <option value="ta">Tamil</option>
+          <option value="te">Telugu</option>
+          <option value="gu">Gujarati</option>
+          <option value="pa">Punjabi</option>
+          <option value="kn">Kannada</option>
+          <option value="ml">Malayalam</option>
+          <option value="or">Odia</option>
+          <option value="ur">Urdu</option>
+        </select>
+
+      <div id="loginAlert" class="alert"></div>
+
+      <div class="form-group">
+        <label id="labelUsername">👩‍🌾 Username</label>
+        <input type="text" id="username" placeholder="Enter username" />
+      </div>
+
+      <div class="form-group">
+        <label id="labelPassword">🔒 Password</label>
+        <input type="password" id="password" placeholder="Enter password" />
+        <span class="toggle-pass" onclick="togglePassword('password', this)">👁️</span>
+      </div>
+
+      <button id="loginBtn" onclick="login()">Login</button>
+
+      <div class="links">
+        <a id="forgotLink" onclick="showForm('forgotForm')">Forgot Password?</a>
+        <a id="createLink" onclick="showForm('registerForm')">Create Account</a>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="form">
+      <h1>🌱 Create Account</h1>
+      <p>Join to explore smart farming tools</p>
+
+      <div id="registerAlert" class="alert"></div>
+
+      <div class="form-group">
+        <label>👤 Username</label>
+        <input type="text" id="newUser" placeholder="Create username" />
+      </div>
+
+      <div class="form-group">
+        <label>🔑 Password</label>
+        <input type="password" id="newPass" placeholder="Create password" />
+        <span class="toggle-pass" onclick="togglePassword('newPass', this)">👁️</span>
+      </div>
+
+      <button onclick="register()">Register</button>
+
+      <div class="links">
+        <a onclick="showForm('loginForm')">Back to Login</a>
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div id="forgotForm" class="form">
+      <h1>🔐 Reset Password</h1>
+      <p>Recover your account</p>
+
+      <div id="resetAlert" class="alert"></div>
+
+      <div class="form-group">
+        <label>👩‍🌾 Username</label>
+        <input type="text" id="resetUser" placeholder="Enter username" />
+      </div>
+
+      <div class="form-group">
+        <label>🆕 New Password</label>
+        <input type="password" id="resetPass" placeholder="Enter new password" />
+        <span class="toggle-pass" onclick="togglePassword('resetPass', this)">👁️</span>
+      </div>
+
+      <button onclick="resetPassword()">Reset Password</button>
+
+      <div class="links">
+        <a onclick="showForm('loginForm')">Back to Login</a>
+      </div>
+    </div>
+  </div>
+  <script src="js/login.js"></script>
+
+</body>
+</html>
+

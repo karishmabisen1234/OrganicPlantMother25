@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>🌿 Smart Plant Voice Assistant — Final</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+<link rel="stylesheet" href="css/voice.css">
+</head>
+<body>
+  <div class="card" role="application" aria-label="Smart Plant Voice Assistant">
+    <div class="top-row">
+      <div class="title-wrap">
+        <h1>🌿 Smart Plant Voice Assistant</h1>
+        <div class="subtitle tiny">Voice + Animated list output • Female voice • 13 Indian languages</div>
+      </div>
+
+      <div class="controls" aria-hidden="false">
+        <select id="langSelect" class="lang-select" aria-label="Select language">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+        <option value="mr">Marathi</option>
+        <option value="bn">Bengali</option>
+        <option value="ta">Tamil</option>
+        <option value="te">Telugu</option>
+        <option value="gu">Gujarati</option>
+        <option value="pa">Punjabi</option>
+        <option value="kn">Kannada</option>
+        <option value="ml">Malayalam</option>
+        <option value="or">Odia</option>
+        <option value="ur">Urdu</option>
+      </select>
+
+        <button id="startBtn" class="circle-btn start" title="Start listening" aria-label="Start listening"><i data-feather="mic"></i></button>
+        <button id="stopBtn" class="circle-btn stop" title="Stop listening" aria-label="Stop listening"><i data-feather="mic-off"></i></button>
+        <button id="themeBtn" class="circle-btn theme" title="Toggle theme" aria-label="Toggle theme"><i data-feather="moon"></i></button>
+      </div>
+    </div>
+
+    <div class="status" id="status">🎙️ Click Start and say a plant name — e.g. "Tomato disease", "Switch to Marathi", "Stop mic".</div>
+
+    <div class="result-card" aria-live="polite" aria-atomic="true">
+      <ul id="resultList" class="result-list" role="list">
+        <!-- populated dynamically -->
+      </ul>
+    </div>
+
+    <button class="back" id="backBtn" title="Back to dashboard">← Back to Dashboard</button>
+  </div>
+<script src="js/voice.js"></script>
+  </body>
+</html>
+
+
+
+

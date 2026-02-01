@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Plant Detector — Auto Detect</title>
+<style>
+  :root {
+    --bg-grad: linear-gradient(135deg, #a8e063, #56ab2f);
+    --card: #ffffff;
+    --text: #05332b;
+    --muted: #145a46;
+    --accent: #0fa96b;
+    --glass: rgba(255,255,255,0.9);
+    --radius: 12px;
+    --shadow: 0 12px 34px rgba(4,14,23,0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Inter, Poppins, system-ui, sans-serif;
+    background: var(--bg-grad);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 26px auto;
+    padding: 18px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: #083231;
+    font-size: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .title h1 {
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .intro {
+    margin-top: 14px;
+    background: var(--card);
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .intro .left { flex: 1; }
+
+  .intro-anim {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.85);
+    font-weight: 800;
+    animation: popin 800ms ease-out;
+  }
+
+  @keyframes popin {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  @media(max-width: 980px) {
+    .main { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: linear-gradient(180deg, #ffffff, #f7fff6);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(4,14,23,0.03);
+    box-shadow: var(--shadow);
+  }
+
+  .cam-frame {
+    height: 420px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(4,14,23,0.02), transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 1px solid rgba(4,14,23,0.03);
+  }
+
+  .placeholder {
+    color: rgba(3,51,35,0.6);
+    text-align: center;
+    padding: 18px;
+  }
+
+  video, img#preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    justify-content: space-between;
+  }
+
+  .left-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 0;
+    background: var(--accent);
+    color: #042f27;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .btn.ghost {
+    background: transparent;
+    border: 1px solid rgba(4,14,23,0.05);
+  }
+
+  .capture {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffffff, #f0fff0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    border: 6px solid rgba(10,80,60,0.06);
+    cursor: pointer;
+  }
+
+  .capture:active { transform: scale(.96); }
+
+  .result {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff;
+    display: none;
+    border: 1px solid rgba(4,14,23,0.04);
+  }
+
+  .res-title {
+    font-weight: 900;
+    font-size: 18px;
+  }
+
+  .muted { color: var(--muted); }
+
+  .ribbon {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    background: #ffffff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-weight: 800;
+    box-shadow: var(--shadow);
+    display: none;
+  }
+
+  .loading {
+    display: inline-block;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(10,80,60,0.06);
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .side .note { color: #063f33; }
+
+  .hint {
+    font-size: 13px;
+    color: #075244;
+    margin-top: 8px;
+  }
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+  <select id="langSelect" style="padding:5px 10px; margin:20px;">
+    <option value="hi">Hindi</option>
+    <option value="mr">Marathi</option>
+    <option value="en">English</option>
+    <option value="gu">Gujarati</option>
+    <option value="ta">Tamil</option>
+    <option value="ur">Urdu</option>
+    <option value="bn">Bengali</option>
+    <option value="pa">Punjabi</option>
+    <option value="kn">Kannada</option>
+    <option value="or">Odia</option>
+    <option value="te">Telugu</option>
+    <option value="ml">Malayalam</option>
+</select>
+
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="logo">PD</div>
+        <div class="title">
+          <h1 id="title">Smart Plant Detector</h1>
+          <div class="muted" id="subtitle">Auto-detect on upload or capture — green theme</div>
+        </div>
+      </div>
+      <div class="muted" id="noNames">No names shown — result appears after image</div>
+    </div>
+
+    <div class="intro card">
+      <div class="left">
+        <div style="font-weight:900" id="welcome">Welcome — Smart Plant Detector 🌿</div>
+        <div class="hint" id="introText">Upload an image or open camera &amp; capture. Detection runs automatically and shows stored info (100 plants).</div>
+      </div>
+      <div class="intro-anim" id="readyText">Ready • Upload • Detect</div>
+    </div>
+
+    <div class="main">
+      <!-- left: camera + detect -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <b id="camTitle">Camera & Upload</b>
+            <div class="muted" id="camSub">Front/Back toggle • Auto-detect</div>
+          </div>
+          <div class="muted">Green theme</div>
+        </div>
+
+        <div class="cam-frame" id="camFrame">
+          <div class="placeholder" id="ph">
+            <div style="font-weight:900" id="camPreview">Camera Preview</div>
+            <div class="muted" id="camStart">Open Camera or Upload image to start</div>
+          </div>
+          <video id="video" autoplay playsinline></video>
+          <img id="preview" alt="preview image" />
+        </div>
+
+        <div class="controls">
+          <div class="left-controls">
+            <label style="display:flex;align-items:center;gap:8px" class="muted"><input id="frontToggle" type="checkbox"> <span id="frontLabel">Front</span></label>
+            <button id="openCamera" class="btn ghost" type="button"><span id="openCameraText">📷 Open Camera</span></button>
+            <button id="uploadBtn" class="btn ghost" type="button"><span id="uploadBtnText">⬆ Upload</span></button>
+            <input type="file" id="fileInput" accept="image/*" style="display:none">
+            <button id="switchBtn" class="btn ghost" type="button"><span id="switchBtnText">🔄 Switch</span></button>
+            <button id="stopBtn" class="btn ghost" type="button"><span id="stopBtnText">⛔ Stop</span></button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="statusBadge" class="loading" style="display:none"><span id="detectingText">Detecting…</span></div>
+            <div id="captureBtn" class="capture" title="Capture (Ctrl+C)"><span id="captureTitle">●</span></div>
+          </div>
+        </div>
+
+        <div id="result" class="result">
+          <div class="res-title" id="res_name">—</div>
+          <div class="muted" id="res_cat">—</div>
+          <div style="margin-top:10px"><b id="dLabel">Disease:</b> <span id="res_disease">—</span></div>
+          <div style="margin-top:8px"><b id="sLabel">Solution:</b> <span id="res_solution">—</span></div>
+          <div style="margin-top:8px"><b id="wLabel">Weather Suitability:</b> <span id="res_weather">—</span></div>
+          <div class="muted" style="margin-top:10px" id="res_note">Result from offline dataset (100 plants). If filename matched, exact plant shown; otherwise simulated detection.</div>
+        </div>
+      </div>
+
+      <!-- right: short help -->
+      <div class="side card">
+        <h3 id="howTitle">How it works</h3>
+        <div class="note" id="howText">
+          • Upload an image (recommended: filename includes plant name like mango.jpg) — file-name matching will give an exact stored answer.<br>
+          • If filename doesn't match or you capture from camera, the system will show an AI-like deterministic result (simulated, but repeatable for same image).<br>
+          • No manual name input required — detection happens automatically after upload or capture.
+        </div>
+        <div style="margin-top:12px" class="muted" id="tipText">Tip: Use clear pictures of leaf/fruit for better simulated detection.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ribbon" class="ribbon">Detected ✔</div>
+
+<script>
+
+  function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+  });
+  
+}
+/* ---------- dataset: 100 plants (short records) ---------- */
+const PLANTS = [
+  {name:'Tomato', category:'Vegetable', disease:'Early blight', solution:'Remove infected leaves; fungicide', weather:'Warm & Humid'},
+  {name:'Potato', category:'Vegetable', disease:'Late blight', solution:'Use certified seed; remove infected plants', weather:'Cool & Wet'},
+  {name:'Onion', category:'Vegetable', disease:'Downy mildew', solution:'Good drainage; fungicide', weather:'Cool & Moist'},
+  {name:'Garlic', category:'Vegetable', disease:'White rot', solution:'Crop rotation; remove infected bulbs', weather:'Cool & Dry'},
+  {name:'Carrot', category:'Vegetable', disease:'Alternaria', solution:'Seed treatment; remove debris', weather:'Cool & Moist'},
+  {name:'Cabbage', category:'Vegetable', disease:'Black rot', solution:'Resistant varieties; avoid overhead watering', weather:'Cool'},
+  {name:'Spinach', category:'Vegetable', disease:'Fusarium wilt', solution:'Resistant seed; rotate crops', weather:'Cool & Moist'},
+  {name:'Lettuce', category:'Vegetable', disease:'Bottom rot', solution:'Improve drainage; fungicide', weather:'Cool & Humid'},
+  {name:'Cucumber', category:'Vegetable', disease:'Powdery mildew', solution:'Remove leaves; sulfur', weather:'Warm'},
+  {name:'Pumpkin', category:'Vegetable', disease:'Anthracnose', solution:'Remove infected fruits; fungicide', weather:'Warm & Humid'},
+  {name:'Apple', category:'Fruit', disease:'Apple scab', solution:'Fungicide at bloom', weather:'Temperate & Cool'},
+  {name:'Mango', category:'Fruit', disease:'Anthracnose', solution:'Copper fungicide; remove infected parts', weather:'Tropical & Humid'},
+  {name:'Banana', category:'Fruit', disease:'Panama wilt', solution:'Use disease-free suckers', weather:'Hot & Humid'},
+  {name:'Orange', category:'Fruit', disease:'Canker', solution:'Remove infected tissue; copper', weather:'Warm'},
+  {name:'Lemon', category:'Fruit', disease:'Greening', solution:'Remove infected trees', weather:'Warm'},
+  {name:'Grapes', category:'Fruit', disease:'Powdery mildew', solution:'Sulfur sprays', weather:'Temperate'},
+  {name:'Strawberry', category:'Fruit', disease:'Botrytis', solution:'Improve ventilation; fungicides', weather:'Cool & Humid'},
+  {name:'Pineapple', category:'Fruit', disease:'Heart rot', solution:'Avoid waterlogging', weather:'Tropical'},
+  {name:'Pear', category:'Fruit', disease:'Fire blight', solution:'Prune infected branches', weather:'Temperate'},
+  {name:'Papaya', category:'Fruit', disease:'Ring spot', solution:'Use resistant varieties', weather:'Tropical'},
+  {name:'Rose', category:'Flower', disease:'Black spot', solution:'Fungicide; remove leaves', weather:'Humid'},
+  {name:'Marigold', category:'Flower', disease:'Powdery mildew', solution:'Fungicide', weather:'Warm'},
+  {name:'Jasmine', category:'Flower', disease:'Leaf spot', solution:'Prune diseased parts', weather:'Warm to Mild'},
+  {name:'Sunflower', category:'Flower', disease:'Sclerotinia', solution:'Rotate crops', weather:'Temperate'},
+  {name:'Hibiscus', category:'Flower', disease:'Rust', solution:'Remove infected leaves', weather:'Warm'},
+  {name:'Lavender', category:'Herb', disease:'Root rot', solution:'Improve drainage', weather:'Dry & Sunny'},
+  {name:'Basil', category:'Herb', disease:'Downy mildew', solution:'Good airflow', weather:'Warm & Humid'},
+  {name:'Mint', category:'Herb', disease:'Rust', solution:'Remove infected parts', weather:'Moist & Mild'},
+  {name:'Coriander', category:'Herb', disease:'Aphids', solution:'Insecticidal soap', weather:'Cool'},
+  {name:'Thyme', category:'Herb', disease:'Root rot', solution:'Well-drained soil', weather:'Dry & Sunny'},
+  {name:'Oregano', category:'Herb', disease:'Leaf spot', solution:'Remove affected leaves', weather:'Mediterranean'},
+  {name:'Chili', category:'Vegetable', disease:'Bacterial spot', solution:'Copper sprays', weather:'Warm & Humid'},
+  {name:'Bell Pepper', category:'Vegetable', disease:'Bacterial spot', solution:'Resistant varieties', weather:'Warm'},
+  {name:'Eggplant', category:'Vegetable', disease:'Verticillium wilt', solution:'Rotate crops', weather:'Warm'},
+  {name:'Beetroot', category:'Vegetable', disease:'Cercospora', solution:'Fungicides', weather:'Temperate'},
+  {name:'Radish', category:'Vegetable', disease:'Clubroot', solution:'Soil pH adjust', weather:'Cool'},
+  {name:'Millet', category:'Grain', disease:'Blast', solution:'Resistant seed', weather:'Warm & Dry'},
+  {name:'Kale', category:'Vegetable', disease:'Downy mildew', solution:'Spacing & fungicide', weather:'Cool'},
+  {name:'Broccoli', category:'Vegetable', disease:'Black rot', solution:'Clean seed', weather:'Cool'},
+  {name:'Cauliflower', category:'Vegetable', disease:'Soft rot', solution:'Avoid bruising', weather:'Cool & Moist'},
+  {name:'Peas', category:'Vegetable', disease:'Powdery mildew', solution:'Resistant varieties', weather:'Cool'},
+  {name:'Sweet Potato', category:'Vegetable', disease:'Black rot', solution:'Healthy slips', weather:'Warm'},
+  {name:'Fig', category:'Fruit', disease:'Fig rust', solution:'Remove fallen leaves', weather:'Warm & Dry'},
+  {name:'Pomegranate', category:'Fruit', disease:'Fruit rot', solution:'Harvest dry', weather:'Hot & Dry'},
+  {name:'Guava', category:'Fruit', disease:'Wilt', solution:'Good drainage', weather:'Tropical'},
+  {name:'Lychee', category:'Fruit', disease:'Anthracnose', solution:'Copper sprays', weather:'Tropical & Humid'},
+  {name:'Chrysanthemum', category:'Flower', disease:'Leaf spot', solution:'Remove infected leaves', weather:'Cool'},
+  {name:'Orchid', category:'Flower', disease:'Root rot', solution:'Reduce watering', weather:'Humid Indirect'},
+  {name:'Peony', category:'Flower', disease:'Botrytis', solution:'Remove diseased parts', weather:'Cool'},
+  {name:'Tulip', category:'Flower', disease:'Tulip fire', solution:'Remove bulbs', weather:'Cold Winters'},
+  {name:'Dahlia', category:'Flower', disease:'Powdery mildew', solution:'Good airflow', weather:'Warm'},
+  {name:'Sage', category:'Herb', disease:'Root rot', solution:'Well-drained', weather:'Dry'},
+  {name:'Rosemary', category:'Herb', disease:'Root rot', solution:'Improve drainage', weather:'Dry'},
+  {name:'Bay Leaf', category:'Herb', disease:'Leaf spot', solution:'Remove leaves', weather:'Mild'},
+  {name:'Aloe Vera', category:'Herb', disease:'Soft rot', solution:'Reduce watering', weather:'Dry & Warm'},
+  {name:'Tulsi', category:'Herb', disease:'Leaf blight', solution:'Remove leaves', weather:'Warm'},
+  {name:'Cinnamon', category:'Spice', disease:'Dieback', solution:'Prune', weather:'Tropical'},
+  {name:'Cardamom', category:'Spice', disease:'Rhizome rot', solution:'Healthy material', weather:'Humid & Shaded'},
+  {name:'Ginger', category:'Spice', disease:'Soft rot', solution:'Well-drained', weather:'Warm & Humid'},
+  {name:'Turmeric', category:'Spice', disease:'Leaf spot', solution:'Seed treatment', weather:'Warm & Moist'},
+  {name:'Avocado', category:'Fruit', disease:'Root rot', solution:'Tolerant rootstock', weather:'Mild'},
+  {name:'Apricot', category:'Fruit', disease:'Brown rot', solution:'Prune & fungicide', weather:'Temperate'},
+  {name:'Plum', category:'Fruit', disease:'Black knot', solution:'Prune knots', weather:'Temperate'},
+  {name:'Pearl Millet', category:'Grain', disease:'Downy mildew', solution:'Resistant varieties', weather:'Hot & Dry'},
+  {name:'Persimmon', category:'Fruit', disease:'Leaf spot', solution:'Remove leaves', weather:'Temperate'},
+  {name:'Coconut', category:'Fruit', disease:'Bud rot', solution:'Improve drainage', weather:'Tropical'},
+  {name:'Dates', category:'Fruit', disease:'Fruit rot', solution:'Harvest dry', weather:'Hot & Arid'},
+  {name:'Almond', category:'Nut', disease:'Brown rot', solution:'Sanitation', weather:'Mediterranean'},
+  {name:'Cashew', category:'Nut', disease:'Dieback', solution:'Remove parts', weather:'Tropical'},
+  {name:'Mustard Greens', category:'Vegetable', disease:'White rust', solution:'Resistant varieties', weather:'Cool'},
+  {name:'Fenugreek', category:'Herb', disease:'Powdery mildew', solution:'Airflow', weather:'Warm'},
+  {name:'Zucchini', category:'Vegetable', disease:'Powdery mildew', solution:'Remove leaves', weather:'Warm'},
+  {name:'Squash', category:'Vegetable', disease:'Downy mildew', solution:'Resistant varieties', weather:'Warm & Humid'},
+  {name:'Melon', category:'Fruit', disease:'Anthracnose', solution:'Sanitation', weather:'Warm'},
+  {name:'Watermelon', category:'Fruit', disease:'Fusarium wilt', solution:'Resistant varieties', weather:'Warm'},
+  {name:'Gooseberry', category:'Fruit', disease:'Powdery mildew', solution:'Sulfur sprays', weather:'Cool'},
+  {name:'Blackberry', category:'Fruit', disease:'Orange rust', solution:'Remove canes', weather:'Temperate'},
+  {name:'Raspberry', category:'Fruit', disease:'Verticillium wilt', solution:'Rotate crops', weather:'Cool'},
+  {name:'Blueberry', category:'Fruit', disease:'Root rot', solution:'Acidic soil', weather:'Cool & Acidic'},
+  {name:'Okra', category:'Vegetable', disease:'Leaf spot', solution:'Remove leaves', weather:'Warm'},
+  {name:'Moringa', category:'Tree', disease:'Leaf spot', solution:'Sanitation', weather:'Tropical'},
+  {name:'Neem', category:'Tree', disease:'Stem-borer', solution:'Prune & treat', weather:'Dry & Hot'},
+  {name:'Chamomile', category:'Herb', disease:'Damping off', solution:'Sterile seedbeds', weather:'Cool'},
+  {name:'Fennel', category:'Herb', disease:'Rust', solution:'Remove parts', weather:'Mild'},
+  {name:'Dill', category:'Herb', disease:'Downy mildew', solution:'Airflow', weather:'Cool'},
+  {name:'Saffron', category:'Spice', disease:'Corm rot', solution:'Well-drained soils', weather:'Hot & Dry'},
+  {name:'Passionfruit', category:'Fruit', disease:'Brown spot', solution:'Fungicide', weather:'Tropical'},
+  {name:'Jackfruit', category:'Fruit', disease:'Stem rot', solution:'Good drainage', weather:'Tropical'},
+  {name:'Amla', category:'Medicinal', disease:'Fruit rot', solution:'Remove affected fruit', weather:'Tropical'},
+  {name:'Ashwagandha', category:'Medicinal', disease:'Root rot', solution:'Well-drained soil', weather:'Warm & Dry'},
+  {name:'Giloy', category:'Medicinal', disease:'Leaf spot', solution:'Prune infected leaves', weather:'Humid & Tropical'},
+  {name:'Shankhpushpi', category:'Medicinal', disease:'Leaf spot', solution:'Air circulation', weather:'Warm'},
+  {name:'Brahmi', category:'Medicinal', disease:'Algal growth', solution:'Avoid overwatering', weather:'Humid'},
+  {name:'Lemon Grass', category:'Medicinal', disease:'Leaf blight', solution:'Trim leaves', weather:'Warm'},
+  {name:'Curry Leaves', category:'Herb', disease:'Leaf spot', solution:'Neem spray', weather:'Warm & Humid'},
+  {name:'Stevia', category:'Medicinal', disease:'Powdery mildew', solution:'Avoid moisture', weather:'Warm'},
+  {name:'Arjun Tree', category:'Medicinal Tree', disease:'Bark rot', solution:'Prune branches', weather:'Tropical'},
+  {name:'Bhringraj', category:'Medicinal', disease:'Leaf spot', solution:'Neem spray', weather:'Warm'},
+  {name:'Henna', category:'Medicinal Shrub', disease:'Leaf blight', solution:'Trim and apply fungicide', weather:'Hot & Dry'},
+  {name:'Rubber Plant', category:'Ornamental', disease:'Root rot', solution:'Reduce watering', weather:'Warm'},
+  {name:'Areca Palm', category:'Indoor Plant', disease:'Leaf tip burn', solution:'Filtered light', weather:'Warm'},
+  {name:'Snake Plant', category:'Indoor', disease:'Overwatering rot', solution:'Reduce watering', weather:'Warm'},
+  {name:'Money Plant', category:'Indoor', disease:'Leaf yellowing', solution:'Avoid direct sunlight', weather:'Humid'},
+  {name:'Peace Lily', category:'Indoor', disease:'Leaf spot', solution:'Prune damaged leaves', weather:'Humid'},
+  {name:'Bamboo', category:'Indoor/Outdoor', disease:'Fungal infection', solution:'Keep soil dry', weather:'Humid'},
+  {name:'Jade Plant', category:'Succulent', disease:'Root rot', solution:'Good drainage', weather:'Warm & Dry'},
+  {name:'Cactus', category:'Succulent', disease:'Soft rot', solution:'Avoid overwatering', weather:'Hot & Dry'},
+  {name:'Croton', category:'Ornamental', disease:'Leaf drop', solution:'Maintain humidity', weather:'Warm'},
+  {name:'Spider Plant', category:'Indoor', disease:'Leaf tip burn', solution:'Avoid fluoride water', weather:'Mild'},
+  {name:'Pothos', category:'Indoor', disease:'Root rot', solution:'Avoid soggy soil', weather:'Humid'},
+  {name:'Begonia', category:'Flower', disease:'Powdery mildew', solution:'Improve ventilation', weather:'Humid'},
+  {name:'Bougainvillea', category:'Flower', disease:'Leaf spot', solution:'Reduce watering', weather:'Hot & Dry'},
+  {name:'Ixora', category:'Flower', disease:'Leaf spot', solution:'Prune infected leaves', weather:'Warm'},
+  {name:'Fern', category:'Indoor', disease:'Frond yellowing', solution:'Increase humidity', weather:'Humid'},
+  {name:'Anthurium', category:'Indoor', disease:'Root rot', solution:'Well-drained soil', weather:'Warm & Humid'},
+  {name:'Peepal Tree', category:'Tree', disease:'Leaf blight', solution:'Prune affected parts', weather:'Tropical'},
+  {name:'Banyan Tree', category:'Tree', disease:'Root rot', solution:'Avoid waterlogging', weather:'Tropical'},
+  {name:'Sandalwood', category:'Tree', disease:'Spike disease', solution:'Remove infected plants', weather:'Tropical & Dry'},
+  {name:'Eucalyptus', category:'Tree', disease:'Leaf blight', solution:'Fungicide spray', weather:'Warm & Dry'},
+  {name:'Teak', category:'Tree', disease:'Heart rot', solution:'Proper pruning', weather:'Tropical'},
+  {name:'Clove', category:'Spice', disease:'Dieback', solution:'Prune affected branches', weather:'Humid'},
+  {name:'Nutmeg', category:'Spice', disease:'Fruit rot', solution:'Harvest dry', weather:'Tropical'},
+  {name:'Betel Leaf', category:'Medicinal', disease:'Leaf rot', solution:'Good ventilation', weather:'Humid & Warm'},
+  {name: 'Pea', category: 'Vegetable', disease: 'Powdery mildew', solution: 'Sulfur spray', weather: 'Cool'},
+  {name: 'Chili', category: 'Vegetable', disease: 'Leaf curl virus', solution: 'Use resistant varieties', weather: 'Warm'},
+  {name: 'Coconut', category: 'Fruit', disease: 'Bud rot', solution: 'Remove affected parts', weather: 'Tropical'},
+  {name: 'Papaya', category: 'Fruit', disease: 'Papaya mosaic virus', solution: 'Control aphids', weather: 'Warm'},
+  {name: 'Sunflower', category: 'Flower', disease: 'Downy mildew', solution: 'Seed treatment', weather: 'Sunny'},
+  {name: 'Marigold', category: 'Flower', disease: 'Botrytis blight', solution: 'Avoid overwatering', weather: 'Mild'},
+  {name: 'Basil', category: 'Herb', disease: 'Downy mildew', solution: 'Improve airflow', weather: 'Warm'},
+  {name: 'Coriander', category: 'Herb', disease: 'Stem rot', solution: 'Avoid excess moisture', weather: 'Cool'},
+  {name: 'Turmeric', category: 'Spice', disease: 'Leaf blotch', solution: 'Use fungicide', weather: 'Humid'},
+  {name: 'Ginger', category: 'Spice', disease: 'Soft rot', solution: 'Use well-drained soil', weather: 'Warm'}
+];
+// ensure 100
+(function fillTo100(){ while(PLANTS.length < 100){ const i = PLANTS.length+1; PLANTS.push({name:`Plant-${i}`, category:'Misc', disease:'No data', solution:'N/A', weather:'Varies'}); } })();
+
+/* ---------- UI refs ---------- */
+const openCamera = document.getElementById('openCamera');
+const uploadBtn = document.getElementById('uploadBtn');
+const fileInput = document.getElementById('fileInput');
+const frontToggle = document.getElementById('frontToggle');
+const video = document.getElementById('video');
+const preview = document.getElementById('preview');
+const ph = document.getElementById('ph');
+const switchBtn = document.getElementById('switchBtn');
+const stopBtn = document.getElementById('stopBtn');
+const captureBtn = document.getElementById('captureBtn');
+const statusBadge = document.getElementById('statusBadge');
+const resultEl = document.getElementById('result');
+const res_name = document.getElementById('res_name');
+const res_cat = document.getElementById('res_cat');
+const res_disease = document.getElementById('res_disease');
+const res_solution = document.getElementById('res_solution');
+const res_weather = document.getElementById('res_weather');
+const ribbon = document.getElementById('ribbon');
+
+let stream = null;
+let facingMode = 'environment';
+
+/* ---------- helpers ---------- */
+// simple case-insensitive fuzzy name find
+function findByNameFromFilename(fname){
+  if(!fname) return null;
+  const base = fname.split('/').pop().split('\\').pop(); // keep basename
+  const name = base.replace(/\.[^/.]+$/, '').toLowerCase(); // remove extension
+  // try exact/startsWith/includes
+  let found = PLANTS.find(p => p.name.toLowerCase() === name);
+  if(found) return found;
+  found = PLANTS.find(p => name.includes(p.name.toLowerCase()));
+  if(found) return found;
+  found = PLANTS.find(p => p.name.toLowerCase().includes(name));
+  if(found) return found;
+  // try by splitting name words, check each
+  const parts = name.split(/[\s-_]+/);
+  for(const part of parts){
+    const f = PLANTS.find(p=>p.name.toLowerCase().startsWith(part));
+    if(f) return f;
+  }
+  return null;
+}
+
+// deterministic "AI-like" pick: hash dataURL string to an index
+function deterministicPickFromData(dataStr){
+  // djb2 hash
+  let hash = 5381;
+  for(let i=0;i<dataStr.length;i++){
+    hash = ((hash<<5) + hash) + dataStr.charCodeAt(i);
+    hash = hash & 0xffffffff;
+  }
+  const idx = Math.abs(hash) % PLANTS.length;
+  return PLANTS[idx];
+}
+
+function showResult(p, modeText=''){
+  res_name.textContent = p.name;
+  res_cat.textContent = p.category || '';
+  res_disease.textContent = p.disease || 'No major disease recorded';
+  res_solution.textContent = p.solution || 'General care: sanitation & proper watering';
+  res_weather.textContent = p.weather || 'Varies';
+  resultEl.style.display = 'block';
+  ribbon.textContent = (modeText? modeText + ' • ' : '') + currentTranslations.resultShown;
+  ribbon.style.display = 'block';
+  setTimeout(()=> ribbon.style.display = 'none', 2200);
+  statusBadge.style.display = 'none';
+  // persist last
+  try{ localStorage.setItem('lastDetected', p.name); } catch(e){}
+}
+
+/* ---------- camera control ---------- */
+async function startCamera(){
+  stopCamera();
+  facingMode = frontToggle.checked ? 'user' : 'environment';
+  try{
+    const constraints = { video: { facingMode }, audio: false };
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+    video.style.display = 'block';
+    preview.style.display = 'none';
+    ph.style.display = 'none';
+  }catch(err){
+    alert(currentTranslations.cameraFail + ': ' + err.message + '\n' + currentTranslations.useUpload);
+  }
+}
+function stopCamera(){
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  if(video){ video.pause(); video.srcObject = null; video.style.display = 'none'; }
+  if(!preview.src) ph.style.display = 'block';
+}
+openCamera.addEventListener('click', ()=> startCamera());
+switchBtn.addEventListener('click', async ()=>{ frontToggle.checked = !frontToggle.checked; await startCamera(); });
+stopBtn.addEventListener('click', ()=> stopCamera());
+
+/* ---------- capture ---------- */
+captureBtn.addEventListener('click', ()=>{
+  if(!stream){
+    alert(currentTranslations.cameraInactive);
+    return;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/png');
+  preview.src = dataUrl;
+  preview.style.display = 'block';
+  video.style.display = 'none';
+  ph.style.display = 'none';
+  // auto-detect using deterministic pick from image data
+  statusBadge.style.display = 'inline-block';
+  setTimeout(()=> {
+    const p = deterministicPickFromData(dataUrl);
+    showResult(p, currentTranslations.autoCapture);
+  }, 600); // tiny delay for UX
+});
+
+// ctrl+c shortcut to capture
+document.addEventListener('keydown', e=>{ if(e.ctrlKey && (e.key==='c' || e.key==='C')) { captureBtn.click(); } });
+
+/* ---------- upload ---------- */
+uploadBtn.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const url = URL.createObjectURL(f);
+  preview.src = url;
+  preview.style.display = 'block';
+  video.style.display = 'none';
+  ph.style.display = 'none';
+  // start auto-detect: first try filename match
+  statusBadge.style.display = 'inline-block';
+  setTimeout(async ()=>{
+    const foundByName = findByNameFromFilename(f.name);
+    if(foundByName){
+      showResult(foundByName, currentTranslations.filenameMatch);
+      return;
+    }
+    // else read file as dataURL then deterministic pick
+    try{
+      const dataStr = await readFileAsDataURL(f);
+      const p = deterministicPickFromData(dataStr);
+      showResult(p, currentTranslations.simulatedAI);
+    }catch(err){
+      alert(currentTranslations.fileReadError + ': ' + err.message);
+      statusBadge.style.display = 'none';
+    }
+  }, 500);
+});
+function readFileAsDataURL(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(r.result);
+    r.onerror = ()=> rej(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+/* ---------- restore last (silent) ---------- */
+(function restore(){
+  const last = localStorage.getItem('lastDetected');
+  if(last){
+    // don't auto-show (privacy requirement)
+  }
+})();
+
+/* ---------- TRANSLATIONS (12 langs) ---------- */
+const ALL_TRANSLATIONS = {
+  en: {
+    title: "Smart Plant Detector",
+    subtitle: "Auto-detect on upload or capture — green theme",
+    welcome: "Welcome — Smart Plant Detector 🌿",
+    introText: "Upload an image or open camera & capture. Detection runs automatically and shows stored info (100 plants).",
+    readyText: "Ready • Upload • Detect",
+    camTitle: "Camera & Upload",
+    camSub: "Front/Back toggle • Auto-detect",
+    camPreview: "Camera Preview",
+    camStart: "Open Camera or Upload image to start",
+    frontLabel: "Front",
+    openCameraText: "📷 Open Camera",
+    uploadBtnText: "⬆ Upload",
+    switchBtnText: "🔄 Switch",
+    stopBtnText: "⛔ Stop",
+    detectingText: "Detecting…",
+    captureTitle: "Capture (Ctrl+C)",
+    howTitle: "How it works",
+    howText: "Upload or capture an image. Filename match gives exact info; else simulated deterministic result.",
+    tipText: "Tip: Use clear pictures of leaf/fruit for better simulated detection.",
+    dLabel: "Disease:",
+    sLabel: "Solution:",
+    wLabel: "Weather Suitability:",
+    resultShown: "Result shown",
+    cameraFail: "Camera access failed",
+    useUpload: "Use Upload if camera unavailable",
+    cameraInactive: "Camera not active. Click Open Camera first.",
+    autoCapture: "Auto (capture)",
+    filenameMatch: "Filename match",
+    simulatedAI: "Simulated AI",
+    fileReadError: "Error reading file"
+  },
+
+  hi: {
+    title: "स्मार्ट प्लांट डिटेक्टर",
+    subtitle: "अपलोड या कैप्चर पर ऑटो-डिटेक्ट — ग्रीन थीम",
+    welcome: "स्वागत है — स्मार्ट प्लांट डिटेक्टर 🌿",
+    introText: "इमेज अपलोड करें या कैमरा खोलें और कैप्चर करें। पहचान अपने-आप होगी और स्टोर की गई जानकारी दिखेगी (100 पौधे)।",
+    readyText: "तैयार • अपलोड • डिटेक्ट",
+    camTitle: "कैमरा और अपलोड",
+    camSub: "फ्रंट/बैक टॉगल • ऑटो-डिटेक्ट",
+    camPreview: "कैमरा प्रीव्यू",
+    camStart: "शुरू करने के लिए कैमरा खोलें या इमेज अपलोड करें",
+    frontLabel: "फ्रंट",
+    openCameraText: "📷 कैमरा खोलें",
+    uploadBtnText: "⬆ अपलोड",
+    switchBtnText: "🔄 स्विच",
+    stopBtnText: "⛔ रोकें",
+    detectingText: "पहचान हो रही है…",
+    captureTitle: "कैप्चर (Ctrl+C)",
+    howTitle: "यह कैसे काम करता है",
+    howText: "इमेज अपलोड या कैप्चर करें। फाइलनाम मैच होने पर सटीक जानकारी; अन्यथा सिम्युलेटेड परिणाम दिखेगा।",
+    tipText: "सुझाव: साफ तस्वीरें (पत्ता/फ्रूट) लें बेहतर पहचान के लिए।",
+    dLabel: "रोग:",
+    sLabel: "उपाय:",
+    wLabel: "मौसम उपयुक्तता:",
+    resultShown: "परिणाम दिखाया गया",
+    cameraFail: "कैमरा एक्सेस विफल",
+    useUpload: "यदि कैमरा उपलब्ध नहीं है तो अपलोड का उपयोग करें",
+    cameraInactive: "कैमरा सक्रिय नहीं है। पहले Open Camera पर क्लिक करें।",
+    autoCapture: "ऑटो (कैप्चर)",
+    filenameMatch: "फाइलनाम मिला",
+    simulatedAI: "सिम्युलेटेड AI",
+    fileReadError: "फाइल पढ़ने में त्रुटि"
+  },
+
+  mr: {
+    title: "स्मार्ट प्लँट डिटेक्टर",
+    subtitle: "अपलोड किंवा कॅप्चर वर ऑटो-डिटेक्ट — ग्रीन थीम",
+    welcome: "स्वागत — स्मार्ट प्लँट डिटेक्टर 🌿",
+    introText: "प्रतिमा अपलोड करा किंवा कॅमेरा उघडा व कैप्चर करा. ओळख आपोआप होईल आणि साठवलेली माहिती दाखवेल (100 पिके).",
+    readyText: "तयार • अपलोड • डिटेक्ट",
+    camTitle: "कॅमेरा व अपलोड",
+    camSub: "फ्रंट/बॅक टॉगल • ऑटो-डिटेक्ट",
+    camPreview: "कॅमेरा पूर्वदृश्य",
+    camStart: "सुरू करण्यासाठी कॅमेरा उघडा किंवा प्रतिमा अपलोड करा",
+    frontLabel: "फ्रंट",
+    openCameraText: "📷 कॅमेरा उघडा",
+    uploadBtnText: "⬆ अपलोड",
+    switchBtnText: "🔄 स्विच",
+    stopBtnText: "⛔ थांबवा",
+    detectingText: "ओळख सुरू आहे…",
+    captureTitle: "कॅप्चर (Ctrl+C)",
+    howTitle: "हे कसे काम करते",
+    howText: "प्रतिमा अपलोड/कॅप्चर करा. फाइलनाव जुळल्यास अचूक माहिती; अन्यथा अनुकरणात्मक निकाल.",
+    tipText: "टिप: पान/फळाची स्पष्ट फोटो वापरा चांगल्या परिणामांसाठी.",
+    dLabel: "रोग:",
+    sLabel: "उपाय:",
+    wLabel: "हवामान योग्यता:",
+    resultShown: "परिणाम दाखवला",
+    cameraFail: "कॅमेरा प्रवेश अयशस्वी",
+    useUpload: "कॅमेरा नसेल तर अपलोड वापरा",
+    cameraInactive: "कॅमेरा सक्रिय नाही. कृपया आधी कॅमेरा उघडा.",
+    autoCapture: "ऑटो (कॅप्चर)",
+    filenameMatch: "फाइलनाव जुळले",
+    simulatedAI: "अनुकरणात्मक AI",
+    fileReadError: "फाइल वाचण्यात त्रुटी"
+  },
+
+  gu: {
+    title: "સ્માર્ટ પ્લાંટ ડિટેક્ટર",
+    subtitle: "અપલોડ અથવા કેપ્ચર પર ઓટો-ડિટેક્ટ — ગ્રીન થીમ",
+    welcome: "સ્વાગત — સ્માર્ટ પ્લાંટ ડિટેક્ટર 🌿",
+    introText: "છબિ અપલોડ કરો અથવા કેમેરા ખોલીને કૅપ્ચર કરો. ઓળખ આપમેળે ચાલશે અને સંગ્રહિત માહિતી બતાવશે (100 છોડ).",
+    readyText: "તૈયાર • અપલોડ • ડિટેક્ટ",
+    camTitle: "કેમેરા અને અપલોડ",
+    camSub: "ફ્રન્ટ/બૅક ટૉગલ • ઓટો-ડિટેક્ટ",
+    camPreview: "કેમેરા પૂર્વદર્શન",
+    camStart: "શરૂ કરવા માટે કેમેરા ખોલો અથવા છબિ અપલોડ કરો",
+    frontLabel: "ફ્રન્ટ",
+    openCameraText: "📷 કેમેરા ખોલો",
+    uploadBtnText: "⬆ અપલોડ",
+    switchBtnText: "🔄 સ્વિચ",
+    stopBtnText: "⛔ અટકો",
+    detectingText: "ઓળખાઈ રહ્યું છે…",
+    captureTitle: "કૅપ્ચર (Ctrl+C)",
+    howTitle: "કેવી રીતે કાર્ય કરે છે",
+    howText: "છબિ અપલોડ અથવા કૅપ્ચર કરો. ફાઇલનામ મેળ ખાય તો ચોક્કસ માહિતી; નહી તો સિમ્યુલેટેડ પરિણામ.",
+    tipText: "સૂચન: સારો પરિણામ માટે પાન/ફળની સ્પષ્ટ તસવીરો લો.",
+    dLabel: "રોગ:",
+    sLabel: "ઉકેલ:",
+    wLabel: "હવામાન સુસંગતતા:",
+    resultShown: "પરિણામ બતાવવામાં આવ્યું",
+    cameraFail: "કેમેરા એક્સેસ નિષ્ફળ",
+    useUpload: "કેમેરા ઉપલબ્ધ ન હોય તો અપલોડ વાપરો",
+    cameraInactive: "કેમેરા સક્રિય નથી. પહેલા કેમેરા ખોલો.",
+    autoCapture: "ઓટો (કૅપ્ચર)",
+    filenameMatch: "ફાઇલનામ મેચ",
+    simulatedAI: "સિમ્યુલેટેડ AI",
+    fileReadError: "ફાઇલ વાંચવામાં ભૂલ"
+  },
+
+  ta: {
+    title: "ஸ்மார்ட் பிளாண்ட் டிடெக்டர்",
+    subtitle: "அப்‌லோட் அல்லது பிடிக்கும்போது தானாக கண்டறிதல் — பசுமை தீம்",
+    welcome: "வரவேற்கிறோம் — ஸ்மார்ட் பிளாண்ட் டிடெக்டர் 🌿",
+    introText: "ஒரு படத்தை பதிவேற்றவும் அல்லது கேமராவை திறந்து பிடிக்கவும். கண்டறிதல் தானாக இயங்கும் மற்றும் சேமிக்கப்பட்ட தகவலை காட்டும் (100 தாவரங்கள்).",
+    readyText: "தயார் • பதிவேற்றம் • கண்டறிதல்",
+    camTitle: "கேமரா & பதிவேற்றம்",
+    camSub: "முன்/பின்னால் மாற்றம் • தானாக கண்டறிதல்",
+    camPreview: "கேமரா முன்னோட்டம்",
+    camStart: "தொடக்கத்திற்காக கேமரா திறக்கவும் அல்லது படம் பதிவேற்றவும்",
+    frontLabel: "முன்",
+    openCameraText: "📷 கேமரா திறக்கவும்",
+    uploadBtnText: "⬆ பதிவேற்றவும்",
+    switchBtnText: "🔄 மாற்றவும்",
+    stopBtnText: "⛔ நிறுத்தவும்",
+    detectingText: "கண்டறிதல்…",
+    captureTitle: "பிடி (Ctrl+C)",
+    howTitle: "இது எப்படி வேலை செய்கிறது",
+    howText: "படத்தை பதிவேற்ற அல்லது பிடிக்கவும். பெயர் பொருந்தினால் சரியான தகவல்; இல்லையெனில் மாதிரி முடிவு.",
+    tipText: "சலுகை: சிறந்த கண்டறிதலுக்கு இலை/பழத்தின் தெளிவான படங்களைப் பயன்படுத்தவும்.",
+    dLabel: "நோய்:",
+    sLabel: "தீர்வு:",
+    wLabel: "வானிலை பொருத்தம்:",
+    resultShown: "முடிவு காட்டப்பட்டு"
+  },
+
+  ur: {
+    title: "اسمارٹ پلانٹ ڈیٹیکٹر",
+    subtitle: "اپلوڈ یا کیپچر پر خودکار شناخت — سبز تھیم",
+    welcome: "خوش آمدید — اسمارٹ پلانٹ ڈیٹیکٹر 🌿",
+    introText: "ایک تصویر اپلوڈ کریں یا کیمرہ کھول کر کیپچر کریں۔ شناخت خود بخود ہوگی اور محفوظ شدہ معلومات دکھائے گی (100 پودے).",
+    readyText: "تیار • اپلوڈ • شناخت",
+    camTitle: "کیمرہ & اپلوڈ",
+    camSub: "فرنٹ/بیک ٹوگل • خودکار شناخت",
+    camPreview: "کیمرہ پیش نظارہ",
+    camStart: "شروع کرنے کے لیے کیمرہ کھولیں یا تصویر اپلوڈ کریں",
+    frontLabel: "فرنٹ",
+    openCameraText: "📷 کیمرہ کھولیں",
+    uploadBtnText: "⬆ اپلوڈ",
+    switchBtnText: "🔄 سوئچ",
+    stopBtnText: "⛔ روکیں",
+    detectingText: "شناخت ہو رہی ہے…",
+    captureTitle: "کیپچر (Ctrl+C)",
+    howTitle: "یہ کیسے کام کرتا ہے",
+    howText: "تصویر اپلوڈ یا کیپچر کریں۔ فائل نام ملنے پر درست معلومات؛ ورنہ مشابہ نتیجہ.",
+    tipText: "ٹپ: بہتر شناخت کے لیے پتے/پھل کی واضح تصاویر استعمال کریں.",
+    dLabel: "بیماری:",
+    sLabel: "حل:",
+    wLabel: "موسم کی مطابقت:",
+    resultShown: "نتیجہ دکھایا گیا",
+    cameraFail: "کیمرہ رسائی ناکام",
+    useUpload: "اگر کیمرہ دستیاب نہ ہو تو اپلوڈ استعمال کریں",
+    cameraInactive: "کیمرہ فعال نہیں۔ پہلے Open Camera پر کلک کریں۔",
+    autoCapture: "خودکار (کیپچر)",
+    filenameMatch: "فائل نام میل",
+    simulatedAI: "مشابہ AI",
+    fileReadError: "فائل پڑھنے میں خرابی"
+  },
+
+  bn: {
+    title: "স্মার্ট প্লান্ট ডিটেক্টর",
+    subtitle: "আপলোড বা ক্যাপচারে স্বয়ংক্রিয় সনাক্তকরণ — সবুজ থিম",
+    welcome: "স্বাগতম — স্মার্ট প্লান্ট ডিটেক্টর 🌿",
+    introText: "একটি ছবি আপলোড করুন বা ক্যামেরা খুলে ক্যাপচার করুন। সনাক্তকরণ স্বয়ংক্রিয়ভাবে চলে এবং সংরক্ষিত তথ্য দেখায় (100 গাছ)।",
+    readyText: "প্রস্তুত • আপলোড • সনাক্ত",
+    camTitle: "ক্যামেরা ও আপলোড",
+    camSub: "ফ্রন্ট/ব্যাক টগল • অটো-ডিটেক্ট",
+    camPreview: "ক্যামেরা প্রিভিউ",
+    camStart: "শুরু করতে ক্যামেরা খুলুন অথবা ছবি আপলোড করুন",
+    frontLabel: "ফ্রন্ট",
+    openCameraText: "📷 ক্যামেরা খুলুন",
+    uploadBtnText: "⬆ আপলোড",
+    switchBtnText: "🔄 পরিবর্তন",
+    stopBtnText: "⛔ বন্ধ",
+    detectingText: "সনাক্ত করা হচ্ছে…",
+    captureTitle: "ক্যাপচার (Ctrl+C)",
+    howTitle: "কিভাবে কাজ করে",
+    howText: "ছবি আপলোড বা ক্যাপচার করুন। ফাইলনেম মেলে হলে সঠিক তথ্য; নাহলে সিমুলেটেড ফলাফল।",
+    tipText: "টিপ: ভাল ফলাফল পেতে পাতার/ফলের পরিষ্কার ছবি ব্যবহার করুন।",
+    dLabel: "রোগ:",
+    sLabel: "উপায়:",
+    wLabel: "আবহাওয়া উপযোগীতা:",
+    resultShown: "ফলাফল দেখানো হয়েছে",
+    cameraFail: "ক্যামেরা অ্যাক্সেস ব্যর্থ",
+    useUpload: "ক্যামেরা না থাকলে আপলোড ব্যবহার করুন",
+    cameraInactive: "ক্যামেরা সক্রিয় নেই। আগে ক্যামেরা খুলুন।",
+    autoCapture: "অটো (ক্যাপচার)",
+    filenameMatch: "ফাইলনেম মিলেছে",
+    simulatedAI: "সিমুলেটেড AI",
+    fileReadError: "ফাইল পড়তে ত্রুটি"
+  },
+
+  pa: {
+    title: "ਸਮਾਰਟ ਪਲਾਂਟ ਡਿਟੈਕਟਰ",
+    subtitle: "ਅਪਲੋਡ ਜਾਂ ਕੈਪਚਰ 'ਤੇ ਆਟੋ-ਡਿਟੈਕਟ — ਗ੍ਰੀਨ ਥੀਮ",
+    welcome: "ਸਵਾਗਤ — ਸਮਾਰਟ ਪਲਾਂਟ ਡਿਟੈਕਟਰ 🌿",
+    introText: "ਇੱਕ ਚਿੱਤਰ ਅਪਲੋਡ ਕਰੋ ਜਾਂ ਕੈਮਰਾ ਖੋਲ੍ਹੋ ਅਤੇ ਕੈਪਚਰ ਕਰੋ। ਪਛਾਣ ਆਪਣੇ ਆਪ ਚਲਦੀ ਹੈ ਅਤੇ ਸਟੋਰ ਕੀਤੀ ਜਾਣਕਾਰੀ ਦਿਖਾਉਂਦੀ ਹੈ (100 ਪੌਦੇ)।",
+    readyText: "ਤਿਆਰ • ਅਪਲੋਡ • ਡਿਟੈਕਟ",
+    camTitle: "ਕੈਮਰਾ & ਅਪਲੋਡ",
+    camSub: "ਫਰੰਟ/ਬੈਕ ਟੌਗਲ • ਆਟੋ-ਡਿਟੈਕਟ",
+    camPreview: "ਕੈਮਰਾ ਪ੍ਰੀਵਿью",
+    camStart: "ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਕੈਮਰਾ ਖੋਲ੍ਹੋ ਜਾਂ ਚਿੱਤਰ ਅਪਲੋਡ ਕਰੋ",
+    frontLabel: "ਫਰੰਟ",
+    openCameraText: "📷 ਕੈਮਰਾ ਖੋਲ੍ਹੋ",
+    uploadBtnText: "⬆ ਅਪਲੋਡ",
+    switchBtnText: "🔄 ਬਦਲੋ",
+    stopBtnText: "⛔ ਰੋਕੋ",
+    detectingText: "ਪਛਾਣ ਹੋ ਰਹੀ ਹੈ…",
+    captureTitle: "ਕੈਪਚਰ (Ctrl+C)",
+    howTitle: "ਇਹ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ",
+    howText: "ਚਿੱਤਰ ਅਪਲੋਡ ਜਾਂ ਕੈਪਚਰ ਕਰੋ। ਫਾਇਲਨਾਮ ਮਿਲੇ ਤਾਂ ਸਹੀ ਜਾਣਕਾਰੀ; ਨਹੀਂ ਤਾਂ ਅਨੁਕਰਨਤਮਕ ਨਤੀਜਾ.",
+    tipText: "ਸਲਾਹ: ਵਧੀਆ ਨਤੀਜੇ ਲਈ ਪੱਤੇ/ਫਲ ਦੀਆਂ ਸਾਫ਼ ਫੋਟੋਆਂ ਵਰਤੋ.",
+    dLabel: "ਰੋਗ:",
+    sLabel: "ਉਪਾਅ:",
+    wLabel: "ਮੌਸਮ ਉਪਯੋਗਤਾ:",
+    resultShown: "ਨਤੀਜਾ ਦਿਖਾਇਆ ਗਿਆ",
+    cameraFail: "ਕੈਮਰਾ ਐਕਸੈਸ ਫੇਲ",
+    useUpload: "ਕੈਮਰਾ ਉਪਲਬਧ ਨਾ ਹੋਵੇ ਤਾਂ ਅਪਲੋਡ ਵਰਤੋਂ",
+    cameraInactive: "ਕੈਮਰਾ ਸਰਗਰਮ ਨਹੀਂ। ਪਹਿਲਾਂ ਕੈਮਰਾ ਖੋਲ੍ਹੋ.",
+    autoCapture: "ਆਟੋ (ਕੈਪਚਰ)",
+    filenameMatch: "ਫਾਇਲਨਾਮ ਮਿਲਿਆ",
+    simulatedAI: "ਸਿਮੁਲੇਟਡ AI",
+    fileReadError: "ਫਾਇਲ ਪਢ੍ਹਣ ਵਿੱਚ ਗਲਤੀ"
+  },
+
+  kn: {
+    title: "ಸ್ಮಾರ್ಟ್ ಪ್ಲಾಂಟ್ ಡಿಟೆಕ್ಟರ್",
+    subtitle: "ಅಪ್‌ಲೋಡ್ ಅಥವಾ ಕ್ಯಾಪ್ಚರ್‌ನಲ್ಲಿ ಸ್ವಯಂಚಾಲಿತ ಪತ್ತೆ — ಹಸಿರು ಥೀಮ್",
+    welcome: "ಸ್ವಾಗತ — ಸ್ಮಾರ್ಟ್ ಪ್ಲಾಂಟ್ ಡಿಟೆಕ್ಟರ್ 🌿",
+    introText: "ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಅಥವಾ ಕ್ಯಾಮೆರಾವನ್ನು ತೆರೆಯಿರಿ ಮತ್ತು ಕ್ಯಾಪ್ಚರ್ ಮಾಡಿ. ಪತ್ತೆ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ನಡೆಯುತ್ತದೆ ಮತ್ತು ಸಂಗ್ರಹಿತ ಮಾಹಿತಿ ತೋರಿಸುತ್ತದೆ (100 ಸಸ್ಯಗಳು).",
+    readyText: "ಸಿದ್ಧ • ಅಪ್‌ಲೋಡ್ • ಪತ್ತೆ",
+    camTitle: "ಕ್ಯಾಮೆರಾ & ಅಪ್‌ಲೋಡ್",
+    camSub: "ಮುಂಭಾಗ/ಹಿಂದಿನ ಟೋಗಲ್ • ಸ್ವಯಂಚಾಲಿತ ಪತ್ತೆ",
+    camPreview: "ಕ್ಯಾಮೆರಾ ಪೂರ್ವಾವಲೋಕನ",
+    camStart: "ಆರಂಭಿಸಲು ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ ಅಥವಾ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    frontLabel: "ಮುಂಭಾಗ",
+    openCameraText: "📷 ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ",
+    uploadBtnText: "⬆ ಅಪ್‌ಲೋಡ್",
+    switchBtnText: "🔄 ಬದಲಿಸಿ",
+    stopBtnText: "⛔ ನಿಲ್ಲಿಸಿ",
+    detectingText: "ಪತ್ತೆ ನಡೆಯುತ್ತಿದೆ…",
+    captureTitle: "ಕ್ಯಾಪ್ಚರ್ (Ctrl+C)",
+    howTitle: "ಇದು ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ",
+    howText: "ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಅಥವಾ ಕ್ಯಾಪ್ಚರ್ ಮಾಡಿ. ಫೈಲ್‌ನಾಮ್ ಹೊಂದಿದ್ದರೆ ನಿಖರ ಮಾಹಿತಿ; ಇಲ್ಲದಿದ್ದರೆ ಅನುಕರಣ ಫಲಿತಾಂಶ.",
+    tipText: "ಸಲಹೆ: ಉತ್ತಮ ಪತ್ತೆಗೆ ಎಲೆ/ಹಣ್ಣುಗಳ ಸ್ಪಷ್ಟ ಚಿತ್ರಗಳನ್ನು ಬಳಸಿ.",
+    dLabel: "ರೋಗ:",
+    sLabel: "ಉಪಾಯ:",
+    wLabel: "ಹವಾಮಾನ ಅನುಕೂಲತೆ:",
+    resultShown: "ಫಲಿತಾಂಶ ತೋರಿಸಲಾಗಿದೆ",
+    cameraFail: "ಕ್ಯಾಮೆರಾ ಪ್ರವೇಶ ವಿಫಲವಾಗಿದೆ",
+    useUpload: "ಕ್ಯಾಮೆರಾ ಲಭ್ಯವಿಲ್ಲದಿದ್ದರೆ ಅಪ್‌ಲೋಡ್ ಬಳಸಿ",
+    cameraInactive: "ಕ್ಯಾಮೆರಾ ಸಕ್ರಿಯವಿಲ್ಲ. ಮೊದಲು Open Camera ಕ್ಲಿಕ್ ಮಾಡಿ.",
+    autoCapture: "ಸ್ವಯಂ (ಕ್ಯಾಪ್ಚರ್)",
+    filenameMatch: "ಫೈಲ್‌ನಾಮ್ ಹೊಂದಿದೆ",
+    simulatedAI: "ಅನುಕರಣ AI",
+    fileReadError: "ಫೈಲ್ ಓದುವಲ್ಲಿ ದೋಷ"
+  },
+
+  or: {
+    title: "ସ୍ମାର୍ଟ ପ୍ଲାଣ୍ଟ ଡିଟେକ୍ଟର",
+    subtitle: "ଅପଲୋଡ୍ କିମ୍ବା କ୍ୟାପଚରରେ ସ୍ୱୟଂଚାଳିତ ଚିହ୍ନଟ — ସବୁଜ ଥିମ୍",
+    welcome: "ସ୍ୱାଗତ — ସ୍ମାର୍ଟ ପ୍ଲାଣ୍ଟ ଡିଟେକ୍ଟର 🌿",
+    introText: "ଏକ ଛବି ଅପଲୋଡ୍ କରନ୍ତୁ କିମ୍ବା କ୍ୟାମେରା ଖୋଲି କ୍ୟାପଚର କରନ୍ତୁ। ସ୍ୱୟଂଚାଳିତ ଚିହ୍ନଟ ହେବା ଏବଂ ସଂଗ୍ରହ କୃତ ସୂଚନା ଦେଖାଯିବ (100 ଗଛ)।",
+    readyText: "ତୟାର • ଅପଲୋଡ୍ • ଡିଟେକ୍ଟ",
+    camTitle: "କ୍ୟାମେରା & ଅପଲୋଡ୍",
+    camSub: "ଫ୍ରଣ୍ଟ/ବ୍ୟାକ୍ ଟଗଲ୍ • ସ୍ୱୟଂଚାଳିତ ଡିଟେକ୍ଟ",
+    camPreview: "କ୍ୟାମେରା ପୂର୍ବଦୃଶ୍ୟ",
+    camStart: "ଆରମ୍ଭ କରିବାକୁ କ୍ୟାମେରା ଖୋଲନ୍ତୁ କିମ୍ବା ଛବି ଅପଲୋଡ୍ କରନ୍ତୁ",
+    frontLabel: "ଫ୍ରଣ୍ଟ",
+    openCameraText: "📷 କ୍ୟାମେରା ଖୋଲନ୍ତୁ",
+    uploadBtnText: "⬆ ଅପଲୋଡ୍",
+    switchBtnText: "🔄 ବଦଳାନ୍ତୁ",
+    stopBtnText: "⛔ ବନ୍ଦ୍",
+    detectingText: "ଚିହ୍ନଟ ହେଉଛି…",
+    captureTitle: "କ୍ୟାପଚର୍ (Ctrl+C)",
+    howTitle: "ଏହା କିପରି କାମ କରେ",
+    howText: "ଛବି ଅପଲୋଡ୍ କିମ୍ବା କ୍ୟାପଚର୍ କରନ୍ତୁ। ଫାଇଲନେମ୍ ମେଳ ହେଲେ ସଠିକ ସୂଚନା; ନହେଲେ ସିମୁଲେଟେଡ୍ ପରିଣାମ।",
+    tipText: "ଟିପ୍: ଭଲ ପରିଣାମ ପାଇଁ ପାତା/ଫଳର ସଫା ଛବି ବ୍ୟବହାର କରନ୍ତୁ।",
+    dLabel: "ରୋଗ:",
+    sLabel: "ଉପାୟ:",
+    wLabel: "ଋତୁଯୋଗ୍ୟତା:",
+    resultShown: "ଫଳ ଦେଖାଯାଇଛି",
+    cameraFail: "କ୍ୟାମେରା ଏକ୍ସେସ୍ ବିଫଳ",
+    useUpload: "କ୍ୟାମେରା ଉପଲବ୍ଧ ନଥିଲେ ଅପଲୋଡ୍ ବ୍ୟବହାର କରନ୍ତୁ",
+    cameraInactive: "କ୍ୟାମେରା ସକ୍ରିୟ ନୁହେଁ। ପ୍ରଥମେ Open Camera କ୍ଲିକ୍ କରନ୍ତୁ।",
+    autoCapture: "ଅଟୋ (କ୍ୟାପଚର୍)",
+    filenameMatch: "ଫାଇଲନେମ୍ ମେଳିଛି",
+    simulatedAI: "ସିମୁଲେଟେଡ୍ AI",
+    fileReadError: "ଫାଇଲ୍ ପଢିବାରେ ତ୍ରୁଟି"
+  },
+
+  te: {
+    title: "స్మార్ట్ ప్లాంట్ డిటెక్టర్",
+    subtitle: "అప్‌లోడ్ లేదా క్యాప్చర్‌కి ఆటో డిటెక్ట్ — గ్రీన్ థీమ్",
+    welcome: "స్వాగతం — స్మార్ట్ ప్లాంట్ డిటెక్టర్ 🌿",
+    introText: "చిత్రాన్ని అప్‌లోడ్ చేయండి లేదా కెమెరా తెరిచి క్యాప్చర్ చేయండి. డిటెక్షన్ ఆటోమేటిక్‌గా జరుగుతుంది మరియు సేకరించిన సమాచారం చూపిస్తుంది (100 మొక్కలు).",
+    readyText: "సిద్ధం • అప్‌లోడ్ • డిటెక్ట్",
+    camTitle: "కెమెరా & అప్‌లోడ్",
+    camSub: "ఫ్రంట్/బాక్ టాగుల్ • ఆటో-డిటెక్ట్",
+    camPreview: "కెమెరా ప్రివ్యూ",
+    camStart: "ప్రారంభించడానికి కెమెరా తెరవండి లేదా చిత్రం అప్‌లోడ్ చేయండి",
+    frontLabel: "ఫ్రంట్",
+    openCameraText: "📷 కెమెరా తెరవండి",
+    uploadBtnText: "⬆ అప్‌లోడ్",
+    switchBtnText: "🔄 స్విచ్",
+    stopBtnText: "⛔ ఆపు",
+    detectingText: "డిటెక్ట్ అవుతోంది…",
+    captureTitle: "క్యాప్చర్ (Ctrl+C)",
+    howTitle: "ఇది ఎలా పనిచేస్తుంది",
+    howText: "చిత్రాన్ని అప్‌లోడ్ చేయండి లేదా క్యాప్చర్ చేయండి. ఫైల్ నేమ్ సరిపోతే ఖచ్చితమైన సమాచారం; లేకపోతే సిమ్యులేటెడ్ ఫలితం.",
+    tipText: "సలహా: మంచి డిటెక్షన్ కోసం ఆకు/ఫలాల స్పష్టమైన చిత్రాలు తీసుకోండి.",
+    dLabel: "రోగం:",
+    sLabel: "పరిష్కారం:",
+    wLabel: "వాతావరణ అనుకూలత:",
+    resultShown: "ఫలితం చూపించబడింది",
+    cameraFail: "కెమెరా యాక్సెస్ విఫలమైంది",
+    useUpload: "కెమెరా అందుబాటులో లేనప్పుడు అప్‌లోడ్ ఉపయోగించండి",
+    cameraInactive: "కెమెరా క్రియాశీలం కాదు. ముందుగా Open Camera క్లిక్ చేయండి.",
+    autoCapture: "ఆటో (క్యాప్చర్)",
+    filenameMatch: "ఫైల్ నేమ్ సరిపోలింది",
+    simulatedAI: "సిమ్యులేటెడ్ AI",
+    fileReadError: "ఫైల్ చదివే లోపం"
+  },
+
+  ml: {
+    title: "സ്മാർട്ട് പ്ലാന്റ് ഡിറ്റക്ടർ",
+    subtitle: "അപ്‌ലോഡ് അല്ലെങ്കിൽ ക്യാപ്ചറിൽ ഓട്ടോ-ഡിറ്റക്റ്റ് — ഗ്രീൻ തീം",
+    welcome: "സ്വാഗതം — സ്മാർട്ട് പ്ലാന്റ് ഡിറ്റക്ടർ 🌿",
+    introText: "ഒരു ചിത്രം അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കിൽ ക്യാമറ തുറന്ന് ക്യാപ്ചർ ചെയ്യുക. ഡിറ്റക്ഷൻ ഓട്ടോമാറ്റിക്‌ ആയി നടക്കും, സേവ് ചെയ്ത വിവരങ്ങൾ കാണിക്കും (100 സസ്യങ്ങൾ).",
+    readyText: "സജ്ജം • അപ്‌ലോഡ് • ഡിറ്റക്റ്റ്",
+    camTitle: "ക്യാമറ & അപ്‌ലോഡ്",
+    camSub: "ഫ്രണ്ട്/ബാക്ക് ടോഗിൾ • ഓട്ടോ-ഡിറ്റക്റ്റ്",
+    camPreview: "ക്യാമറ പ്രിവ്യൂ",
+    camStart: "ആരംഭിക്കാൻ ക്യാമറ തുറക്കുക അല്ലെങ്കിൽ ചിത്രം അപ്‌ലോഡ് ചെയ്യുക",
+    frontLabel: "ഫ്രണ്ട്",
+    openCameraText: "📷 ക്യാമറ തുറക്കുക",
+    uploadBtnText: "⬆ അപ്‌ലോഡ്",
+    switchBtnText: "🔄 സ്വിച്ച്",
+    stopBtnText: "⛔ നിർത്തുക",
+    detectingText: "ഡിറ്റക്റ്റ് ചെയ്യുന്നു…",
+    captureTitle: "ക്യാപ്ചർ (Ctrl+C)",
+    howTitle: "ഇത് എങ്ങനെ പ്രവർത്തിക്കുന്നു",
+    howText: "ചിത്രം അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കിൽ ക്യാപ്ചർ ചെയ്യുക. ഫയൽനെയിം പൊരുത്തപ്പെടുകയാണെങ്കിൽ കൃത്യമായ വിവരം; അല്ലെങ്കിൽ സിമുലേറ്റഡ് ഫലം.",
+    tipText: "സൂചനം: മികച്ച ഡിറ്റക്ഷൻക്ക് ഇല/ഫലത്തിന്റെ ശുദ്ധമായ ചിത്രങ്ങൾ ഉപയോഗിക്കുക.",
+    dLabel: "രോഗം:",
+    sLabel: "പരിഹാരം:",
+    wLabel: "കാലാവസ്ഥ അനുയോജ്യത:",
+    resultShown: "ഫലം കാണിച്ചു",
+    cameraFail: "ക്യാമറ ആക്സസ് പരാജയപ്പെട്ടു",
+    useUpload: "ക്യാമറ ലഭ്യമല്ലെങ്കിൽ അപ്‌ലോഡ് ഉപയോഗിക്കുക",
+    cameraInactive: "ക്യാമറ സജീവമല്ല. ആദ്യം Open Camera ക്ലിക്ക് ചെയ്യുക.",
+    autoCapture: "ഓട്ടോ (ക്യാപ്ചർ)",
+    filenameMatch: "ഫയൽനെയിം പൊരുത്തപ്പെട്ടു",
+    simulatedAI: "സിമുലേറ്റഡ് AI",
+    fileReadError: "ഫയൽ വായിക്കുമ്പോൾ പിശക്"
+  }
+};
+
+function applyTranslations(lang){
+  currentTranslations = ALL_TRANSLATIONS[lang] || ALL_TRANSLATIONS.hi;
+  for(const id in currentTranslations){
+    const el = document.getElementById(id);
+    if(el){
+      if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){
+        el.value = currentTranslations[id];       // input value set
+        if(el.placeholder) el.placeholder = currentTranslations[id]; // placeholder bhi
+      } else {
+        el.innerText = currentTranslations[id];  // normal text set
+      }
+    }
+  }
+}
+
+
+/* ---------- LANGUAGE SELECTOR ---------- */
+const langSelect = document.getElementById('langSelect');
+langSelect.addEventListener('change', (e)=>{
+  applyTranslations(e.target.value); // user select kiya hua language apply kare
+});
+
+
+/* ---------- INITIALIZE DEFAULT ---------- */
+applyTranslations('hi');
+</script>
+
+<!-- BACK BUTTON -->
+<button onclick="window.location.href='dashboard.html'" 
+style="padding:10px 16px;
+border:none;
+border-radius:8px;
+background:linear-gradient(135deg,#4CAF50,#2E7D32);
+color:white;
+font-weight:600;
+cursor:pointer;
+margin:20px auto;
+display:block;">
+⬅ Back to Dashboard
+</button>
+</body>
+</html>

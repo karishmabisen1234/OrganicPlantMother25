@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌱 Plant Chatbot Single Line Output</title>
+<style>
+body{font-family:Poppins,Arial;background:#eef5ee;margin:0}
+.chatbox{max-width:450px;margin:20px auto;background:#fff;border-radius:14px;box-shadow:0 6px 15px rgba(0,0,0,.15);display:flex;flex-direction:column}
+header{background:#2e7d32;color:#fff;padding:12px 15px;border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center}
+#messages{flex:1;padding:12px;overflow-y:auto}
+.msg{margin:8px 0;padding:8px 10px;border-radius:10px;max-width:90%}
+.bot{background:#e8f5e9;color:#1b5e20}
+.user{background:#e3f2fd;color:#0d47a1;margin-left:auto}
+.options button{margin:4px 4px 0 0;padding:6px 10px;border:none;border-radius:8px;background:#2e7d32;color:#fff;cursor:pointer}
+footer{display:flex;gap:6px;padding:10px;border-top:1px solid #ddd;flex-wrap:wrap}
+input{flex:1;padding:8px;border-radius:6px;border:1px solid #ccc}
+select{width:100%;padding:6px;border-radius:8px}
+button.export{background:#ff9800}
+</style>
+</head>
+<body>
+<div class="chatbox">
+<header>
+<span id="header-text">🌿 Plant Assistant</span>
+<select id="lang" onchange="changeLang()">
+<option value="en">English</option>
+<option value="hi">Hindi</option>
+<option value="mr">Marathi</option>
+</select>
+</header>
+<div id="messages"></div>
+<footer>
+<div id="options" class="options"></div>
+<input id="text" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendText()"/>
+<button id="sendBtn" onclick="sendText()">Send</button>
+<button id="clearBtn" onclick="clearChat()">Clear</button>
+<button class="export" onclick="exportChat()">Export Chat</button>
+</footer>
+</div>
+<script>
+let lang='en';
+let step='welcome';
+let selectedPlant='';
+const messages=document.getElementById('messages');
+const options=document.getElementById('options');
+const text=document.getElementById('text');
+
+const textData={
+  en:{header:'🌿 Plant Assistant',placeholder:'Type your message...',send:'Send',clear:'Clear',welcome:'Hello 👋 I am your plant assistant. What do you want to do?',choose:'Choose an option 👇',plant:'Which plant is it?',problem:'What problem do you see?',done:'Do you want to continue?',unknown:'Sorry, I understand only plant related questions 🌱'},
+  hi:{header:'🌿 पौधा सहायक',placeholder:'अपना संदेश लिखें...',send:'भेजें',clear:'साफ़ करें',welcome:'नमस्ते 👋 मैं आपका पौधों का सहायक हूँ। आप क्या करना चाहते हैं?',choose:'एक विकल्प चुनें 👇',plant:'कौन सा पौधा है?',problem:'कौन सी समस्या दिख रही है?',done:'क्या आप आगे जारी रखना चाहते हैं?',unknown:'माफ़ कीजिए, मैं सिर्फ पौधों से जुड़े सवाल समझता हूँ 🌱'},
+  mr:{header:'🌿 वनस्पती सहाय्यक',placeholder:'तुमचा संदेश टाका...',send:'पाठवा',clear:'साफ करा',welcome:'नमस्कार 👋 मी तुमचा वनस्पती सहाय्यक आहे. तुम्हाला काय करायचे आहे?',choose:'एक पर्याय निवडा 👇',plant:'कोणते रोप आहे?',problem:'कोणती समस्या दिसते?',done:'तुम्हाला पुढे सुरू ठेवायचे आहे का?',unknown:'माफ करा, मी फक्त वनस्पतीविषयी प्रश्न समजतो 🌱'}
+};
+
+const plants={
+Tomato:{'Leaf Curl':{sol:'Neem oil spray',adv:'Organic & safe',dis:'Slow result'},'Blight':{sol:'Copper fungicide',adv:'Effective',dis:'Needs care'}},
+Potato:{'Late Blight':{sol:'Remove infected leaves',adv:'Effective',dis:'Needs care'},'Early Blight':{sol:'Fungicide treatment',adv:'Fast action',dis:'Chemical use'}},
+Cabbage:{'Cabbage Worm':{sol:'Neem oil',adv:'Organic',dis:'Repeat treatment needed'},'Black Rot':{sol:'Remove infected leaves',adv:'Effective',dis:'Needs monitoring'}},
+Carrot:{'Aphids':{sol:'Soap spray',adv:'Safe',dis:'Needs repeated application'}},
+Onion:{'Downy Mildew':{sol:'Fungicide',adv:'Effective',dis:'Chemical use'}},
+Chili:{'Anthracnose':{sol:'Copper spray',adv:'Effective',dis:'Needs care'}},
+Brinjal:{'Fruit Rot':{sol:'Remove infected fruits',adv:'Safe',dis:'Slow process'}},
+Beans:{'Rust':{sol:'Neem oil',adv:'Organic',dis:'Multiple application'}},
+Peas:{'Powdery Mildew':{sol:'Sulfur spray',adv:'Effective',dis:'Chemical use'}},
+Maize:{'Leaf Blight':{sol:'Fungicide',adv:'Fast',dis:'Chemical use'}},
+Grapes:{'Downy Mildew':{sol:'Copper spray',adv:'Effective',dis:'Repeat needed'}},
+Mango:{'Powdery Mildew':{sol:'Sulfur spray',adv:'Safe',dis:'Needs care'}},
+Banana:{'Panama Disease':{sol:'Remove infected plants',adv:'Safe',dis:'Long term'}},
+Guava:{'Wilt':{sol:'Remove affected parts',adv:'Safe',dis:'Slow recovery'}},
+Papaya:{'Ring Spot':{sol:'Fungicide spray',adv:'Effective',dis:'Chemical use'}}
+};
+
+const plantNameMap={'टोमॅटो':'Tomato','बटाटा':'Potato','कोबी':'Cabbage','गाजर':'Carrot','कांदा':'Onion','मिरची':'Chili','वांगी':'Brinjal','फटकी':'Beans','मटर':'Peas','मका':'Maize','द्राक्ष':'Grapes','आंबा':'Mango','केळी':'Banana','पेरू':'Guava','पपई':'Papaya'};
+
+function addMsg(msg,cls){
+  const d=document.createElement('div'); d.className='msg '+cls; d.innerText=msg; messages.appendChild(d); messages.scrollTop=messages.scrollHeight; saveChat(msg,cls);
+}
+
+function saveChat(msg,cls){
+  let chat=sessionStorage.getItem('chatHistory'); let arr=chat?JSON.parse(chat):[]; arr.push({msg,cls}); sessionStorage.setItem('chatHistory',JSON.stringify(arr));
+}
+
+function exportChat(){
+  let chat=sessionStorage.getItem('chatHistory'); if(!chat){alert('No chat to export'); return;}
+  let arr=JSON.parse(chat); let textContent=arr.map(c=>`${c.cls.toUpperCase()}: ${c.msg}`).join('\n');
+  let blob=new Blob([textContent],{type:'text/plain'}); let url=URL.createObjectURL(blob); let a=document.createElement('a'); a.href=url; a.download='chat_history.txt'; a.click(); URL.revokeObjectURL(url);
+}
+
+function showOptions(arr){options.innerHTML=''; arr.forEach(o=>{let b=document.createElement('button'); b.innerText=o; b.onclick=()=>handleChoice(o); options.appendChild(b);});}
+
+function updatePageTexts(){document.getElementById('header-text').innerText=textData[lang].header; text.placeholder=textData[lang].placeholder; document.getElementById('sendBtn').innerText=textData[lang].send; document.getElementById('clearBtn').innerText=textData[lang].clear;}
+
+function start(){step='welcome'; selectedPlant=''; updatePageTexts(); messages.innerHTML=''; options.innerHTML=''; sessionStorage.removeItem('chatHistory'); addMsg(textData[lang].welcome,'bot'); addMsg(textData[lang].choose,'bot'); showOptions(['Plant Disease']);}
+
+function handleChoice(choice){addMsg(choice,'user'); if(step==='welcome'||step==='menu'){addMsg(textData[lang].plant,'bot'); showOptions(Object.keys(plants)); step='plant';} else if(step==='plant'){selectedPlant=choice; addMsg(textData[lang].problem,'bot'); showOptions(Object.keys(plants[choice])); step='problem';} else if(step==='problem'){const d=plants[selectedPlant][choice]; addMsg(`Disease: ${choice} | Solution: ${d.sol} | Advantage: ${d.adv} | Disadvantage: ${d.dis}`,'bot'); addMsg(textData[lang].done,'bot'); showOptions(['Yes','No']); step='end';} else if(step==='end'){if(choice==='Yes') start(); else{addMsg('Thank you 🌱','bot'); options.innerHTML='';}}
+}
+
+function sendText(){const msg=text.value.trim(); if(!msg) return; addMsg(msg,'user'); text.value=''; if(['hi','hello','hey','namaste','नमस्ते','नमस्कार'].some(w=>msg.toLowerCase().includes(w))){addMsg(textData[lang].welcome,'bot'); return;} let foundPlant=Object.keys(plants).find(p=>msg.toLowerCase().includes(p.toLowerCase())); if(!foundPlant && lang==='mr'){let mapKey=Object.keys(plantNameMap).find(k=>msg.includes(k)); if(mapKey) foundPlant=plantNameMap[mapKey];} if(foundPlant){selectedPlant=foundPlant; addMsg(textData[lang].problem,'bot'); showOptions(Object.keys(plants[foundPlant])); step='problem'; return;} addMsg(textData[lang].unknown,'bot');}
+
+function changeLang(){lang=document.getElementById('lang').value; start();}
+function clearChat(){messages.innerHTML=''; options.innerHTML=''; text.value=''; sessionStorage.removeItem('chatHistory'); start();}
+
+window.onload=start;
+</script>
+</body>
+</html>
+```
+

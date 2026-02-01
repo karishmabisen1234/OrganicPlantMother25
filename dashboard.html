@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Health Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/feather-icons"></script>
+   <link rel="stylesheet" href="css/dashboard.css">
+
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="sidebar" id="sidebar">
+    <h2>🌿 Organic Plant Mother 25</h2>
+    <div class="nav-item" id="menuDashboard"><i data-feather="home"></i> <span>Dashboard</span></div>
+    <div class="nav-item" id="menuDetect"><i data-feather="camera"></i> <span>Disease Detection</span></div>
+    <div class="nav-item" id="menuTips"><i data-feather="leaf"></i> <span>Organic Tips</span></div>
+    <div class="nav-item" id="menuChat"><i data-feather="message-circle"></i> <span>Chatbot</span></div>
+    <div class="nav-item" id="menuLearn"><i data-feather="book-open"></i> <span>Learn Diseases</span></div>
+    <div class="nav-item" id="menuRecords"><i data-feather="bar-chart-2"></i> <span>Disease Severity Records</span></div>
+    <button class="logout" id="menulogoutBtn">Logout</button>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <div class="header-controls">
+        <div class="menu-btn" id="menuBtn"><i data-feather="menu"></i></div>
+        <div class="theme-toggle" id="themeToggle"><i data-feather="moon"></i></div>
+        <!-- 🌐 Language Selector -->
+        <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="mr">Marathi</option>
+          <option value="bn">Bengali</option>
+          <option value="ta">Tamil</option>
+          <option value="te">Telugu</option>
+          <option value="gu">Gujarati</option>
+          <option value="pa">Punjabi</option>
+          <option value="kn">Kannada</option>
+          <option value="ml">Malayalam</option>
+          <option value="or">Odia</option>
+          <option value="ur">Urdu</option>
+        </select>
+      </div>
+      <h1>
+        <img src="https://cdn-icons-png.flaticon.com/512/7662/7662562.png" alt="Plant Icon">
+        Welcome Back, Karishma 🌼
+      </h1>
+      <div class="user-info">
+        <i data-feather="user"></i> Admin Panel
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><i data-feather="activity"></i><h3>Detection Accuracy</h3><p>97.4% Model Accuracy Achieved</p></div>
+      <div class="card"><i data-feather="camera"></i><h3>Recent Scans</h3><p>12 Leaf Images Analyzed Today</p></div>
+      <div class="card"><i data-feather="alert-triangle"></i><h3>Diseases Detected</h3><p>3 New Cases Identified</p></div>
+      <div class="card"><i data-feather="trending-up"></i><h3>Performance</h3><p>System Health: Stable 🌱</p></div>
+    </div>
+
+    <div class="footer">© 2025 Plant Health Dashboard | Designed by <b>Karishma Bisen</b> 💚</div>
+  </div>
+
+  <img src="https://cdn-icons-png.flaticon.com/512/7662/7662550.png" alt="Floating Plant" class="floating-plant">
+
+  <div id="google_translate_element" style="display:none;"></div>
+  <!-- JS -->
+  <script src="js/dashboard.js"></script>
+
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        { pageLanguage: 'en' },
+        'google_translate_element'
+      );
+    }
+  </script>
+
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>
