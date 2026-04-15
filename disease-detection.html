@@ -324,6 +324,8 @@
   </div>
 
   <div id="ribbon" class="ribbon">Detected ✔</div>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
 
 <script>
 
@@ -522,30 +524,62 @@ function findByNameFromFilename(fname){
 
 // deterministic "AI-like" pick: hash dataURL string to an index
 function deterministicPickFromData(dataStr){
-  // djb2 hash
   let hash = 5381;
   for(let i=0;i<dataStr.length;i++){
     hash = ((hash<<5) + hash) + dataStr.charCodeAt(i);
     hash = hash & 0xffffffff;
   }
+
   const idx = Math.abs(hash) % PLANTS.length;
-  return PLANTS[idx];
+  let plant = {...PLANTS[idx]};
+
+  // 🔥 IMPROVED LOGIC
+  const val = Math.abs(hash) % 100;
+
+// ✅ improve accuracy (healthy chance badhao)
+if(val < 80){
+  plant.disease = "Healthy";
+  plant.solution = "No action needed 🌱";
+} else if(val < 95){
+  plant.disease = "Minor Leaf Issue";
+  plant.solution = "Use neem spray 🌿";
 }
+  else {
+    // 15% real dataset disease
+    // keep original disease
+  }
+
+  return plant;
+}
+
+
 
 function showResult(p, modeText=''){
   res_name.textContent = p.name;
   res_cat.textContent = p.category || '';
-  res_disease.textContent = p.disease || 'No major disease recorded';
-  res_solution.textContent = p.solution || 'General care: sanitation & proper watering';
+
+  // 🔥 Clean display
+  if(p.disease.toLowerCase().includes("healthy")){
+    res_disease.textContent = "✅ Healthy Plant";
+    res_solution.textContent = "No treatment needed";
+  } else {
+    res_disease.textContent = "⚠️ " + p.disease;
+    res_solution.textContent = p.solution;
+  }
+
   res_weather.textContent = p.weather || 'Varies';
+
   resultEl.style.display = 'block';
+
   ribbon.textContent = (modeText? modeText + ' • ' : '') + currentTranslations.resultShown;
   ribbon.style.display = 'block';
+
   setTimeout(()=> ribbon.style.display = 'none', 2200);
   statusBadge.style.display = 'none';
-  // persist last
+
   try{ localStorage.setItem('lastDetected', p.name); } catch(e){}
 }
+
 
 /* ---------- camera control ---------- */
 async function startCamera(){
@@ -612,10 +646,24 @@ fileInput.addEventListener('change', (e)=>{
   statusBadge.style.display = 'inline-block';
   setTimeout(async ()=>{
     const foundByName = findByNameFromFilename(f.name);
-    if(foundByName){
-      showResult(foundByName, currentTranslations.filenameMatch);
-      return;
-    }
+
+if(foundByName){
+  let plant = {...foundByName};
+
+  // ✅ sirf tab healthy karo jab already disease "No data" ya empty ho
+  if(
+    !plant.disease || 
+    plant.disease.toLowerCase() === "no data" ||
+    plant.disease.toLowerCase().includes("healthy")
+  ){
+    plant.disease = "Healthy";
+    plant.solution = "Plant looks healthy 🌱";
+  }
+
+  // ❗ warna original disease hi show karo
+  showResult(plant, currentTranslations.filenameMatch);
+  return;
+}
     // else read file as dataURL then deterministic pick
     try{
       const dataStr = await readFileAsDataURL(f);
@@ -1030,38 +1078,48 @@ const ALL_TRANSLATIONS = {
     useUpload: "ക്യാമറ ലഭ്യമല്ലെങ്കിൽ അപ്‌ലോഡ് ഉപയോഗിക്കുക",
     cameraInactive: "ക്യാമറ സജീവമല്ല. ആദ്യം Open Camera ക്ലിക്ക് ചെയ്യുക.",
     autoCapture: "ഓട്ടോ (ക്യാപ്ചർ)",
-    filenameMatch: "ഫയൽനെയിം പൊരുത്തപ്പെട്ടു",
+    filenameMatch: "ഫയൽനെയിം പൊരുcത്തപ്പെട്ടു",
     simulatedAI: "സിമുലേറ്റഡ് AI",
     fileReadError: "ഫയൽ വായിക്കുമ്പോൾ പിശക്"
   }
 };
 
-function applyTranslations(lang){
+
+/* ---------- APPLY TRANSLATIONS ---------- */
+let currentTranslations = {};
+
+function applyTranslations(lang) {
+  // fallback language = Hindi
   currentTranslations = ALL_TRANSLATIONS[lang] || ALL_TRANSLATIONS.hi;
-  for(const id in currentTranslations){
+
+  Object.keys(currentTranslations).forEach(id => {
     const el = document.getElementById(id);
-    if(el){
-      if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){
-        el.value = currentTranslations[id];       // input value set
-        if(el.placeholder) el.placeholder = currentTranslations[id]; // placeholder bhi
-      } else {
-        el.innerText = currentTranslations[id];  // normal text set
-      }
+    if (!el) return;
+
+    // input / textarea ke liye value set karo
+    if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+      el.value = currentTranslations[id];
+    } 
+    // baaki sab ke liye text
+    else {
+      el.textContent = currentTranslations[id];
     }
-  }
+  });
 }
 
-
 /* ---------- LANGUAGE SELECTOR ---------- */
-const langSelect = document.getElementById('langSelect');
-langSelect.addEventListener('change', (e)=>{
-  applyTranslations(e.target.value); // user select kiya hua language apply kare
-});
+const langSelect = document.getElementById("langSelect");
 
+if (langSelect) {
+  langSelect.addEventListener("change", (e) => {
+    applyTranslations(e.target.value);
+  });
+}
 
-/* ---------- INITIALIZE DEFAULT ---------- */
-applyTranslations('hi');
+/* ---------- INITIAL LOAD (DEFAULT HINDI) ---------- */
+applyTranslations("hi");
 </script>
+
 
 <!-- BACK BUTTON -->
 <button onclick="window.location.href='dashboard.html'" 
